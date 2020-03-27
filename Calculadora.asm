@@ -15,16 +15,17 @@
 .text
 
 main:
-	li $v0 4
+	
+	li $v0, 4 # set syscall para print
 	la $a0, menuInicial
 	syscall 
 	
-	li $v0, 8
-	la $a0, op
-	li $a1, 2
+	li $v0, 8 # set syscall para receber string
+	li $a1, 2 # set numero maximo de bytes a serem lidos p/ 2
+	la $a0, op # coloca o enderco de op em $a0
 	syscall
 	
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, newline
 	syscall
 	
@@ -50,7 +51,7 @@ selecao:
 	j main
 	
 calculo:
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, menuSec1
 	syscall
 	
@@ -59,7 +60,7 @@ calculo:
 	li $a1, 2
 	syscall
 	
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, newline
 	syscall
 	
@@ -75,7 +76,7 @@ calculo:
 	beq $s7, 'F', numeros1
 	
 numeros1:
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, n1
 	syscall
 	
@@ -85,7 +86,7 @@ numeros1:
 	move $s6, $v0
    
 numeros2:
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, n2
 	syscall
 	
@@ -103,7 +104,7 @@ numeros2:
 checkdiv0:
 	bne $s7, '/', endfunction
 	bne $s5, $zero, endfunction
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, div0
 	syscall
 	j numeros2   
@@ -126,14 +127,14 @@ endcalculo:
 	la $a0, ($s0) #resultado
 	syscall
 	
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, newline
 	syscall
 	
 	j main
 	
 numero:
-	li $v0, 4
+	li $v0, 4 # set syscall para print
 	la $a0, n
 	syscall
 	
