@@ -1,6 +1,6 @@
 .data
 	menuInicial: .asciiz " Calculo (C) ou memoria (M)\n"
-	menuSec1:    .asciiz "Adicao (+)\nSubtracao (-)\nDivisao (/)\nMultiplicacao (*)\nPotenciacao (^)\nRaiz quadrada (R)\nTabuada de 1 numero fornecido (T\nFatorial de 1 numero fornecido (!)\nCalculo da sequencia de Fibonacci dado um intervalo (F)\n"
+	menuSec1:    .asciiz "Adicao (+)\nSubtracao (-)\nDivisao (/)\nMultiplicacao (*)\nPotenciacao (^)\nRaiz quadrada (R)\nTabuada de 1 numero fornecido (T)\nFatorial de 1 numero fornecido (!)\nCalculo da sequencia de Fibonacci dado um intervalo (F)\n"
 	menuSec2:    .asciiz "Memoria 1 (M1), Memoria 2 (M2), Memoria 3 (M3)\n"
 	div0:	     .asciiz "Divisao por zero nao existe, digite outro valor\n"
 	op:	     .space  2
@@ -112,13 +112,21 @@ checkdiv0:
 adicao:
 	add $s0, $s5, $s6
 	j endcalculo
+
 subtracao:
-   
+	sub $s0,$s5,$s6
+	j endcalculo
+
 divisao:
-   
+	div $s0,$s5,$s6
+	j endcalculo
+
 multiplicacao:
-   
+	mul $s0,$s5,$s6
+	j endcalculo
+
 fibonacci:
+
    
 endcalculo:
 	#armazenamento na memoria
@@ -154,8 +162,19 @@ raiz:
 tabuada:
    
 fatorial:
-   
-   
+	move $a0, $s6 # coloca o operando em $a0
+	addi $a1, $a0, -1 # coloca o operando-1 em $a1
+	addi $a2, $zero, 1 # coloca zero em a2
+	
+	jal fatorial_recursao
+	move $s0,$a0
+	j endcalculo
+	
+fatorial_recursao:
+	beq $a1, $a2, endfunction # se a1 = 0 termina a recursão
+	mul $a0, $a0, $a1 # a0 = a0*a1
+	addi $a1, $a1, -1 # a1 = a1-1
+	j fatorial_recursao
    
 memoria:
    
