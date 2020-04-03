@@ -75,6 +75,7 @@ calculo:
 	beq $s7, '!', numero
 	beq $s7, 'F', numeros1
 	bne $s7, 'F', main
+	j selecao
 	
 numeros1: # operando 1
 	li $v0, 4 # set syscall para print
