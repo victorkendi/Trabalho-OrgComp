@@ -5,13 +5,13 @@
 	menuSec2:    .asciiz "Memoria 1 (M1), Memoria 2 (M2), Memoria 3 (M3)\n"
 	div0:	     .asciiz "Divisao por zero nao existe, digite outro valor\n"
 	op:	     .space  2
+	mem:	     .space  3
 	n1:	     .asciiz "primeiro numero\n"
 	n2:	     .asciiz "segundo numero\n"
 	n: 	     .asciiz "Numero\n"
 	newline:	     .asciiz "\n"
 	vazio:		.asciiz "Essa memoria esta vazia\n"
 	space:		.asciiz " "
-	#adi:	     .byte   '+'
 	#sinal $s7
 	#numeros da operacao $s5 $s6
 	#resultado $s0
@@ -32,24 +32,21 @@ main:
 	la $a0, newline
 	syscall
 	
-	j selecao
-	#lbu $t1, adi
-	#li  $t0, '+'
-	#beq $t1, $t0, printf
+	j selecao #vai para seleçao da operaçao C ou M
 	
 exit:
-	li $v0, 10
+	li $v0, 10 #set syscall para finalizar programa
 	syscall
 	
 selecao:
 	lbu $t1, op
 	li $t0, 'C'
-	beq $t1, $t0, calculo
+	beq $t1, $t0, calculo #se caracter for igual a C, vai para calculo
 	
 	lbu $t1, op
 	li $t0, 'M'
-	bne $t1, $t0, exit
-	beq $t1, $t0, memoria
+	bne $t1, $t0, exit ##se caracter for diferente de C e M, finaliza programa
+	beq $t1, $t0, memoria #se caracter for igual a M, vai para calculo
 	
 	j main
 	
@@ -58,7 +55,7 @@ calculo:
 	la $a0, menuSec1
 	syscall
 	
-	li $v0, 8
+	li $v0, 8 # set syscall para receber string
 	la $a0, op
 	li $a1, 2
 	syscall
@@ -67,46 +64,48 @@ calculo:
 	la $a0, newline
 	syscall
 	
-	lbu $s7, op
-	beq $s7, '+', numeros1
+	lbu $s7, op # comparaçao com operador recebido para ver quantos operandos sao necessarios
+	beq $s7, '+', numeros1 # numeros1 recebe 2 operandos
 	beq $s7, '-', numeros1
 	beq $s7, '/', numeros1
 	beq $s7, '*', numeros1
-	beq $s7, '^', numero
-	beq $s7, 'R', numero
+	beq $s7, '^', numeros1 
+	beq $s7, 'R', numero   # numero recebe 1 operando
 	beq $s7, 'T', numero
 	beq $s7, '!', numero
 	beq $s7, 'F', numeros1
+	bne $s7, 'F', main
 	
-numeros1:
+numeros1: # operando 1
 	li $v0, 4 # set syscall para print
 	la $a0, n1
 	syscall
 	
-	li $v0, 5
+	li $v0, 5 # set syscall para ler int
 	syscall
 	
-	move $s6, $v0
+	move $s5, $v0
    
-numeros2:
+numeros2: # operando 2
 	li $v0, 4 # set syscall para print
 	la $a0, n2
 	syscall
 	
-	li $v0, 5
+	li $v0, 5 # set syscall para ler int
 	syscall
 	
-	move $s5, $v0
-	jal checkdiv0
+	move $s6, $v0
+	jal checkdiv0 # jump and link para check de divisao por 0
 	beq $s7, '+', adicao
 	beq $s7, '-', subtracao
 	beq $s7, '/', divisao
 	beq $s7, '*', multiplicacao
+	beq $s7, '^', potenciacao
 	beq $s7, 'F', fibonacci_intervalo
    
-checkdiv0:
+checkdiv0: # check divisao por 0
 	bne $s7, '/', endfunction
-	bne $s5, $zero, endfunction
+	bne $s6, $zero, endfunction
 	li $v0, 4 # set syscall para print
 	la $a0, div0
 	syscall
@@ -117,70 +116,77 @@ adicao:
 	j endcalculo
 
 subtracao:
-	sub $s0,$s5,$s6
+	sub $s0, $s5, $s6
 	j endcalculo
 
 divisao:
-	div $s0,$s5,$s6
+	div $s0, $s5, $s6
 	j endcalculo
 
 multiplicacao:
-	mul $s0,$s5,$s6
+	mul $s0, $s5, $s6
 	j endcalculo
+	
+potenciacao:
+	addi $s0,$zero,1
+	potenciacao_recursao:
+		beq $s6, $zero, endcalculo # se s6 = 1 termina a recursao
+		mul $s0, $s0, $s5 # s0 = s0*s5
+		subi $s6, $s6, 1 # s6 = s6-1
+		j potenciacao_recursao
+   
 
 fibonacci_intervalo:
-	move $t0,$s5
-	move $t1,$s6
-	addi $sp,$sp,-4
+	move $t0, $s5
+	move $t1, $s6
+	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 
 	fibo_loop:
-		beq $t0,$t1,endfibo
-		move $a0,$t0
+		beq $t0, $t1, endfibo
+		move $a0, $t0
 		jal fibonacci
-		move $t3,$v0
+		move $t3, $v0
+		move $s4, $v0
 		print_int($t3)
 		print_str_memo(space)
-		addi $t0,$t0,1
+		addi $t0, $t0, 1
 		j fibo_loop
 
 
 
 
 fibonacci:
-	subu $sp,$sp,12
-	sw $ra,0($sp)
-	sw $s0,4($sp)
-	sw $s1,8($sp)
+	subu $sp, $sp, 12
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
 	
 	# caso base
-	li $v0,1
-	blt $a0,0x2,fib_fim
+	li $v0, 1
+	blt $a0, 0x2, fib_fim
 	
 	move $s0,$a0
 	
-	subu $a0,$s0,1
+	subu $a0, $s0, 1
 	jal fibonacci
-	move $s1,$v0
+	move $s1, $v0
 		
-	subu $a0,$s0,2
+	subu $a0, $s0, 2
 	jal fibonacci
-
-	add $v0,$v0,$s1
-	
+	add $v0, $v0, $s1
 	fib_fim:
-		lw $ra,0($sp)
-		lw $s0,4($sp)
-		lw $s1,8($sp)
-		add $sp,$sp,12
+		lw $ra, 0($sp)
+		lw $s0, 4($sp)
+		lw $s1, 8($sp)
+		add $sp, $sp, 12
 		jr $ra
 	
 endfibo:
-	lw $ra,0($sp)
-	add $sp,$sp,4
-	jr $ra
-
-   
+	lw $ra, 0($sp)
+	add $sp, $sp,4
+	move $s0, $s4
+	j endcalculo
 endcalculo:
 	#armazenamento na memoria
 	#Colocando o return adress na stack
@@ -195,6 +201,10 @@ endcalculo:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 28
 	
+	li $v0, 4
+	la $a0, newline
+	syscall
+	
 	li $v0, 1
 	la $a0, ($s0) #resultado
 	syscall
@@ -205,7 +215,7 @@ endcalculo:
 	
 	j main
 	
-numero:
+numero: # 1 operando
 	li $v0, 4 # set syscall para print
 	la $a0, n
 	syscall
@@ -214,30 +224,19 @@ numero:
 	syscall
 	
 	move $s6, $v0
-	beq $s7, '^', potenciacao
 	beq $s7, 'R', raiz
 	beq $s7, 'T', tabuada
 	beq $s7, '!', fatorial
 	
-potenciacao:
-	# s5^s6
-	addi $s0,$zero,1
-
-	potenciacao_recursao:
-		beq $s6, $zero, endcalculo # se s6 = 1 termina a recursao
-		mul $s0, $s0, $s5 # s0 = s0*s5
-		addi $s6, $s6, -1 # s6 = s6-1
-		j potenciacao_recursao
-   
 raiz:
 	move  $s0, $zero        # incializa o retorn
-	move  $t1, $s5          # copia o argumento pra t1
+	move  $t1, $s6         # copia o argumento pra t1
 
 	addi  $t0, $zero, 1
 	sll   $t0, $t0, 30		#coloca em t0 no trigezimo bit 1     
 	
-	j raiz_bit
-
+	jal raiz_bit
+	j endcalculo
 	raiz_bit:
 		slt   $t2, $t1, $t0     # if( n < bit): 
 		beq   $t2, $zero, raiz_loop
@@ -267,16 +266,26 @@ raiz:
 
    
 tabuada:
-	addi $t0,$zero,1
-	addi $t1,$zero,10
+	li $v0 4
+	la $a0 newline
+	syscall
+	
+	jal tabuada_cal
+	j main
+tabuada_cal:	
+	addi $t0, $zero, 0
+	addi $t1, $zero, 10
 
 	loop_tabuada:
-		bgt $t0,$t1,endfunction	
-		mul $t0,$s5,$t0 # t0 = s*t0
-		addi $t0,$t0,1 # t0++
-		print_int($t0)
+		bgt $t0, $t1,tabuada_exit	
+		mul $t2 ,$s6, $t0 # t0 = s*t0
+		addi $t0, $t0, 1 # t0++
+		print_int($t2)
 		print_str_memo(newline)
-		j tabuada
+		j loop_tabuada
+	tabuada_exit:
+		j endfunction
+
 fatorial:
 	move $a0, $s6 # coloca o operando em $a0
 	addi $a1, $a0, -1 # coloca o operando-1 em $a1
